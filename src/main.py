@@ -28,6 +28,8 @@ def main():
         edit_note(args[1:])
     elif args[0] == "init":
         init()
+    elif args[0] == "load":
+        load(args[1:])
     else:
         print(f"Unknown command '{args[0]}'. Available commands: list, new, recall, delete, run, edit, init")
 def recall_note(args):
@@ -111,6 +113,14 @@ def get_data_dir():
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
         return data_dir
+    conf = get_config_dir()
+    data_dir_file = os.path.join(conf, "data_dir.conf")
+    if os.path.exists(data_dir_file):
+        with open(data_dir_file, "r") as file:
+            data_dir = file.read().strip()
+            if os.path.exists(data_dir) and os.path.isdir(data_dir):
+                return data_dir
+    # Default data directory
     if os.name == 'nt':  # Windows
         data_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
         app_data = os.path.join(data_dir, "mem-note")
@@ -158,5 +168,26 @@ def init():
         print(f"Initialized memory directory at {data_dir}")
     else :
         print("This directory is already initialized.")
+def load(args):
+    '''
+    load a folder as the data directory
+    '''
+    if not args:
+        print("Please provide the path to load as data directory.")
+        return
+    data_dir = args[0]
+    if os.path.exists(data_dir) and os.path.isdir(data_dir):
+        conf = get_config_dir()
+        with open(os.path.join(conf, "data_dir.conf"), "w") as file:
+            file.write(data_dir)
+        print(f"Loaded {data_dir} as data directory.")
+    elif data_dir == "default":
+        conf = get_config_dir()
+        data_dir_file = os.path.join(conf, "data_dir.conf")
+        if os.path.exists(data_dir_file):
+            os.remove(data_dir_file)
+        print("Reverted to default data directory.")
+    else:
+        print(f"Path '{data_dir}' does not exist or is not a directory.")
 if __name__ == "__main__":
     main()
