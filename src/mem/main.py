@@ -5,6 +5,7 @@
 import os
 import sys
 import importlib.util
+import shutil
 home = os.path.expanduser("~")
 def main():
     args = sys.argv[1:]
@@ -89,8 +90,13 @@ def run(args):
     plugin_path = os.path.join(config_dir, args[0] + ".py")
     
     if not os.path.exists(plugin_path):
-        print(f"Plugin '{args[0]}' not found.")
-        return
+        move_plugins_to_config()
+        plugin_path = os.path.join(config_dir, args[0] + ".py")
+        if os.path.exists(plugin_path):
+            pass
+        else:
+            print(f"Plugin '{args[0]}' not found.")
+            return
     
     # Load and run the plugin
     # Pass the data directory and remaining args to the plugin
@@ -101,6 +107,21 @@ def run(args):
     # Call the plugin's main function if it exists
     if hasattr(module, 'main'):
         module.main(get_data_dir(), args[1:])
+def move_plugins_to_config():
+    '''
+    Copy packaged plugins into the config directory if they are missing.
+    '''
+    config_dir = get_config_dir()
+    plugins_dir = os.path.join(os.path.dirname(__file__), "plugins")
+    if not os.path.exists(plugins_dir):
+        return
+    for filename in os.listdir(plugins_dir):
+        if not filename.endswith(".py") or filename.startswith("__"):
+            continue
+        source_path = os.path.join(plugins_dir, filename)
+        destination_path = os.path.join(config_dir, filename)
+        if not os.path.exists(destination_path):
+            shutil.copy2(source_path, destination_path)
 def get_data_dir():
     '''
     Ensure the data directory exists. Supports local .mem directory if initialized.
