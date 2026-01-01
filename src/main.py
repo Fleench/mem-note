@@ -27,10 +27,8 @@ def main():
     
     if command in commands:
         commands[command](args[1:])
-    elif command == "run":
-        run(args[1:])
     else:
-        print(f"Unknown command '{command}'")
+        run(args)
 def recall_note(args):
     '''
     Recall a specific note
