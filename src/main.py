@@ -2,7 +2,6 @@
 # Author: Glenn Sutherland
 # Date: 12/31/2025
 # Description: A basic memory/note cli tool
-import argparse
 import os
 import sys
 import importlib.util
@@ -10,8 +9,7 @@ home = os.path.expanduser("~")
 def main():
     args = sys.argv[1:]
     if not args:
-        print("Please provide a command: list, new, recall, delete, run")
-        return
+        args = ["help"]
     if args[0] == "list":
         list_notes(args[1:])
     elif args[0] == "new":
@@ -31,7 +29,7 @@ def main():
     elif args[0] == "load":
         load(args[1:])
     else:
-        print(f"Unknown command '{args[0]}'. Available commands: list, new, recall, delete, run, edit, init")
+        print(f"Unknown command '{args[0]}'. Available commands: list, new, recall, delete, run, edit, init, load")
 def recall_note(args):
     '''
     Recall a specific note
