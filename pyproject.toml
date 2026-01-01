@@ -1,0 +1,15 @@
+[project]
+name = "mem-note"
+version = "0.1.0"
+description = "A basic memory/note CLI tool."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Glenn Sutherland" }]
+
+[project.scripts]
+mem-note = "mem.main:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
