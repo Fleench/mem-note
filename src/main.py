@@ -24,6 +24,12 @@ def main():
         delete_note(args[1:])
     elif args[0] == "run":
         run(args[1:])
+    elif args[0] == "edit":
+        edit_note(args[1:])
+    elif args[0] == "init":
+        init()
+    else:
+        print(f"Unknown command '{args[0]}'. Available commands: list, new, recall, delete, run, edit, init")
 def recall_note(args):
     '''
     Recall a specific note
@@ -98,19 +104,35 @@ def run(args):
         module.main(get_data_dir(), args[1:])
 def get_data_dir():
     '''
-    Ensure the data directory exists
+    Ensure the data directory exists. Supports local .mem directory if initialized.
     '''
-    data_dir = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
-    app_data = os.path.join(data_dir, "mem-note")
+    if os.path.exists(os.path.join(os.getcwd(), ".mem")):
+        data_dir = os.path.join(os.getcwd(), ".mem")
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+        return data_dir
+    if os.name == 'nt':  # Windows
+        data_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
+        app_data = os.path.join(data_dir, "mem-note")
+    else:  # Linux/Mac
+        data_dir = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
+        app_data = os.path.join(data_dir, "mem-note")
+    
     if not os.path.exists(app_data):
         os.makedirs(app_data)
     return app_data
+
 def get_config_dir():
     '''
     Ensure the config directory exists
     '''
-    config_dir = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
-    app_config = os.path.join(config_dir, "mem-note")
+    if os.name == 'nt':  # Windows
+        config_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
+        app_config = os.path.join(config_dir, "mem-note")
+    else:  # Linux/Mac
+        config_dir = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
+        app_config = os.path.join(config_dir, "mem-note")
+    
     if not os.path.exists(app_config):
         os.makedirs(app_config)
     return app_config
@@ -125,5 +147,16 @@ def edit_note(args):
     note_path = os.path.join(data, args[0])
     delete_note([args[0]])
     new_note(args)
+def init():
+    '''
+    Allow the current directory to be initialized to store its own memories
+    '''
+    cwd = os.getcwd()
+    data_dir = os.path.join(cwd, ".mem")
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+        print(f"Initialized memory directory at {data_dir}")
+    else :
+        print("This directory is already initialized.")
 if __name__ == "__main__":
     main()
