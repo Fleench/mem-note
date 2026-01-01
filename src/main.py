@@ -9,27 +9,28 @@ home = os.path.expanduser("~")
 def main():
     args = sys.argv[1:]
     if not args:
-        args = ["help"]
-    if args[0] == "list":
-        list_notes(args[1:])
-    elif args[0] == "new":
-        new_note(args[1:])
-
-    elif args[0] == "recall":
-        recall_note(args[1:])
-
-    elif args[0] == "delete":
-        delete_note(args[1:])
-    elif args[0] == "run":
+        print("Please provide a command")
+        return
+    
+    # Built-in commands
+    commands = {
+        "list": list_notes,
+        "new": new_note,
+        "recall": recall_note,
+        "delete": delete_note,
+        "edit": edit_note,
+        "init": init,
+        "load": load,
+    }
+    
+    command = args[0]
+    
+    if command in commands:
+        commands[command](args[1:])
+    elif command == "run":
         run(args[1:])
-    elif args[0] == "edit":
-        edit_note(args[1:])
-    elif args[0] == "init":
-        init()
-    elif args[0] == "load":
-        load(args[1:])
     else:
-        print(f"Unknown command '{args[0]}'. Available commands: list, new, recall, delete, run, edit, init, load")
+        print(f"Unknown command '{command}'")
 def recall_note(args):
     '''
     Recall a specific note
