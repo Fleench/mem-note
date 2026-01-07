@@ -1,7 +1,7 @@
 """Example plugin."""
 
 
-def     :
+def meta_data():
     return {
         "name": "hi",
         "description": "Example plugin that greets the user.",

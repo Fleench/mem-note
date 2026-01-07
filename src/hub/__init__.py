@@ -1,5 +1,6 @@
-"""Memory note package."""
+"""Hub package."""
 
-from mem.main import main
+# Keep package init minimal to avoid masking submodules.
+# Import submodules explicitly where needed.
 
-__all__ = ["main"]
+__all__ = []
