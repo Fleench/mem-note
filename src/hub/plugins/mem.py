@@ -10,34 +10,7 @@ def meta_data():
     }
 
 
-def main(data_dir, args):
-    """
-    Entry point for the notes plugin.
-    Dispatches commands to specific note functions.
-    """
-    if not args:
-        _print_usage()
-        return
-
-    command = args[0]
-    plugin_args = args[1:]
-
-    commands = {
-        "list": _list_notes,
-        "new": _new_note,
-        "recall": _recall_note,
-        "delete": _delete_note,
-        "edit": _edit_note,
-    }
-
-    if command in commands:
-        commands[command](data_dir, plugin_args)
-    else:
-        print(f"Unknown notes command '{command}'.")
-        _print_usage()
-
-
-def help():
+def help(data_dir, local_data_dir):
     print("Usage: notes <command> [args]")
     print("Commands:")
     print("  list            - List all notes")
@@ -47,7 +20,7 @@ def help():
     print("  edit <name> <body> - Edit (overwrite) a note")
 
 
-def recall(data_dir, args):
+def recall(data_dir, local_data_dir, args):
     if not args:
         print("Please provide the name of the note to recall.")
         return
@@ -60,7 +33,7 @@ def recall(data_dir, args):
         print(f"Note '{args[0]}' does not exist.")
 
 
-def delete(data_dir, args):
+def delete(data_dir, local_data_dir, args):
     if not args:
         print("Please provide the name of the note to delete.")
         return
@@ -72,7 +45,7 @@ def delete(data_dir, args):
         print(f"Note '{args[0]}' does not exist.")
 
 
-def new(data_dir, args):
+def new(data_dir, local_data_dir, args):
     if len(args) < 2:
         print("Please provide the name and content of the note.")
         return
@@ -81,7 +54,7 @@ def new(data_dir, args):
     print(f"Note '{args[0]}' created.")
 
 
-def list(data_dir, args):
+def list(data_dir, local_dta_dir, args):
     if not os.path.exists(data_dir):
         print("No data directory found.")
         return
@@ -90,7 +63,7 @@ def list(data_dir, args):
         print(note)
 
 
-def edit(data_dir, args):
+def edit(data_dir, local_data_dir, args):
     if not args:
         print("Please provide the name of the note to edit.")
         return

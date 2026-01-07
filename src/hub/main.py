@@ -4,7 +4,7 @@ import os
 import sys
 import importlib.util
 import shutil
-
+DEBUG = True
 def main():
     args = sys.argv[1:]
     if not args:
@@ -33,15 +33,15 @@ def run_plugin(plugin_name, cmd, args):
     '''
     config_dir = get_config_dir()
     plugin_path = os.path.join(config_dir, plugin_name + ".py")
-    
     # Check if plugin exists in config; if not, try to install it from package
-    if not os.path.exists(plugin_path):
+    if not os.path.exists(plugin_path) or DEBUG:
         move_plugins_to_config()
         plugin_path = os.path.join(config_dir, plugin_name + ".py")
         if not os.path.exists(plugin_path):
             print(f"Plugin '{plugin_name}' not found.")
             return
-    
+    if DEBUG:
+        move_plugins_to_config()
     # Load and run the plugin
     try:
         spec = importlib.util.spec_from_file_location(plugin_name, plugin_path)
@@ -51,10 +51,10 @@ def run_plugin(plugin_name, cmd, args):
             
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        
         # Call the plugin's main function if it exists
         if hasattr(module, cmd):
-            module.cmd(get_data_dir(), get_data_local_dir(), args)
+            cmd = getattr(module, cmd)
+            cmd(get_data_dir(), get_data_local_dir(), args)
         else:
             print(f"Plugin '{plugin_name}' does not have the command {cmd}.")
             
@@ -75,7 +75,7 @@ def move_plugins_to_config():
             continue
         source_path = os.path.join(plugins_dir, filename)
         destination_path = os.path.join(config_dir, filename)
-        if not os.path.exists(destination_path):
+        if not os.path.exists(destination_path) or DEBUG:
             shutil.copy2(source_path, destination_path)
 
 
@@ -107,7 +107,7 @@ def get_data_dir():
         app_data = os.path.join(data_dir, "mem-note")
     else:  # Linux/Mac
         data_dir = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
-        app_data = os.path.join(data_dir, "mem-note")
+        app_data = os.path.join(data_dir, "hub")
     
     if not os.path.exists(app_data):
         os.makedirs(app_data)
@@ -124,7 +124,8 @@ def get_config_dir():
     else:  # Linux/Mac
         config_dir = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
         app_config = os.path.join(config_dir, "hub")
-    
+        if DEBUG:
+            app_config = os.path.join(config_dir, "hub-debug")
     if not os.path.exists(app_config):
         os.makedirs(app_config)
     return app_config
