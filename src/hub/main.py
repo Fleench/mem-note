@@ -1,112 +1,67 @@
 # File: main.py
-# Author: Glenn Sutherland
-# Date: 12/31/2025
-# Description: A basic memory/note cli tool
+# Description: Plugin manager and entry point for mem-note
 import os
 import sys
 import importlib.util
 import shutil
-home = os.path.expanduser("~")
+
 def main():
     args = sys.argv[1:]
     if not args:
-        print("Please provide a command")
+        print("Usage: hub <plugin_name> [args] | init | load <path>")
         return
-    
-    # Built-in commands
-    commands = {
-        "list": list_notes,
-        "new": new_note,
-        "recall": recall_note,
-        "delete": delete_note,
-        "edit": edit_note,
-        "init": init,
-        "load": load,
-    }
     
     command = args[0]
     
-    if command in commands:
-        commands[command](args[1:])
+    # Core configuration commands
+    if command == "init":
+        init()
+    elif command == "load":
+        load(args[1:])
     else:
-        run(args)
-def recall_note(args):
+        # Treat command as a plugin name
+        split_command = command.split(".")
+        if len(split_command) < 2:
+            print("Error: Command must be formated like <plugin>.<command>")
+            return
+        run_plugin(split_command[0], split_command[1],args[1:])
+
+
+def run_plugin(plugin_name, cmd, args):
     '''
-    Recall a specific note
+    Load and run a specific plugin
     '''
-    if not args:
-        print("Please provide the name of the note to recall.")
-        return
-    data = get_data_dir()
-    note_path = os.path.join(data, args[0])
-    if os.path.exists(note_path):
-        with open(note_path, "r") as file:
-            content = file.read()
-            print(content)
-    else:
-        print(f"Note '{args[0]}' does not exist.")
-def delete_note(args):
-    '''
-    Delete a specific note
-    '''
-    if not args:
-        print("Please provide the name of the note to delete.")
-        return
-    data = get_data_dir()
-    note_path = os.path.join(data, args[0])
-    if os.path.exists(note_path):
-        os.remove(note_path)
-        print(f"Note '{args[0]}' deleted.")
-    else:
-        print(f"Note '{args[0]}' does not exist.")
-def new_note(args):
-    '''
-    Create a new note
-    '''
-    if len(args) < 2:
-        print("Please provide the name and content of the note.")
-        return
-    data = get_data_dir()
-    with open(os.path.join(data, args[0]), "w") as file:
-        file.write(" ".join(args[1:]))
-    print(f"Note '{args[0]}' created.")
-def list_notes(args):
-    '''
-    List all notes
-    '''
-    data = get_data_dir()
-    notes = os.listdir(data)
-    for note in notes:
-        print(note)
-def run(args):
-    '''
-    Run a specific extension command
-    '''
-    if not args:
-        print("Please provide a plugin name.")
-        return
-    
     config_dir = get_config_dir()
-    plugin_path = os.path.join(config_dir, args[0] + ".py")
+    plugin_path = os.path.join(config_dir, plugin_name + ".py")
     
+    # Check if plugin exists in config; if not, try to install it from package
     if not os.path.exists(plugin_path):
         move_plugins_to_config()
-        plugin_path = os.path.join(config_dir, args[0] + ".py")
-        if os.path.exists(plugin_path):
-            pass
-        else:
-            print(f"Plugin '{args[0]}' not found.")
+        plugin_path = os.path.join(config_dir, plugin_name + ".py")
+        if not os.path.exists(plugin_path):
+            print(f"Plugin '{plugin_name}' not found.")
             return
     
     # Load and run the plugin
-    # Pass the data directory and remaining args to the plugin
-    spec = importlib.util.spec_from_file_location(args[0], plugin_path)
-    module = importlib.util.module_from_spec(spec) # type: ignore
-    spec.loader.exec_module(module) # type: ignore
-    
-    # Call the plugin's main function if it exists
-    if hasattr(module, 'main'):
-        module.main(get_data_dir(), args[1:])
+    try:
+        spec = importlib.util.spec_from_file_location(plugin_name, plugin_path)
+        if spec is None or spec.loader is None:
+            print(f"Could not load plugin '{plugin_name}'.")
+            return
+            
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        
+        # Call the plugin's main function if it exists
+        if hasattr(module, cmd):
+            module.cmd(get_data_dir(), get_data_local_dir(), args)
+        else:
+            print(f"Plugin '{plugin_name}' does not have the command {cmd}.")
+            
+    except Exception as e:
+        print(f"Error executing plugin '{plugin_name}': {e}")
+
+
 def move_plugins_to_config():
     '''
     Copy packaged plugins into the config directory if they are missing.
@@ -122,15 +77,22 @@ def move_plugins_to_config():
         destination_path = os.path.join(config_dir, filename)
         if not os.path.exists(destination_path):
             shutil.copy2(source_path, destination_path)
-def get_data_dir():
+
+
+def get_data_local_dir():
     '''
     Ensure the data directory exists. Supports local .mem directory if initialized.
     '''
+    # 1. Check for local .mem directory
     if os.path.exists(os.path.join(os.getcwd(), ".mem")):
         data_dir = os.path.join(os.getcwd(), ".mem")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
         return data_dir
+    else:
+        return get_data_dir()
+def get_data_dir():
+    # 2. Check for configured data directory
     conf = get_config_dir()
     data_dir_file = os.path.join(conf, "data_dir.conf")
     if os.path.exists(data_dir_file):
@@ -138,7 +100,8 @@ def get_data_dir():
             data_dir = file.read().strip()
             if os.path.exists(data_dir) and os.path.isdir(data_dir):
                 return data_dir
-    # Default data directory
+
+    # 3. Fallback to default system data directory
     if os.name == 'nt':  # Windows
         data_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
         app_data = os.path.join(data_dir, "mem-note")
@@ -150,6 +113,7 @@ def get_data_dir():
         os.makedirs(app_data)
     return app_data
 
+
 def get_config_dir():
     '''
     Ensure the config directory exists
@@ -159,25 +123,16 @@ def get_config_dir():
         app_config = os.path.join(config_dir, "mem-note")
     else:  # Linux/Mac
         config_dir = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
-        app_config = os.path.join(config_dir, "mem-note")
+        app_config = os.path.join(config_dir, "hub")
     
     if not os.path.exists(app_config):
         os.makedirs(app_config)
     return app_config
-def edit_note(args):
-    '''
-    Edit a specific note
-    '''
-    if not args:
-        print("Please provide the name of the note to edit.")
-        return
-    data = get_data_dir()
-    note_path = os.path.join(data, args[0])
-    delete_note([args[0]])
-    new_note(args)
+
+
 def init():
     '''
-    Allow the current directory to be initialized to store its own memories
+    Allow the current directory to be initialized to store its own local data
     '''
     cwd = os.getcwd()
     data_dir = os.path.join(cwd, ".mem")
@@ -186,6 +141,8 @@ def init():
         print(f"Initialized memory directory at {data_dir}")
     else :
         print("This directory is already initialized.")
+
+
 def load(args):
     '''
     load a folder as the data directory
@@ -207,5 +164,7 @@ def load(args):
         print("Reverted to default data directory.")
     else:
         print(f"Path '{data_dir}' does not exist or is not a directory.")
+
+
 if __name__ == "__main__":
     main()
