@@ -1,0 +1,23 @@
+{
+    "plugins": {
+        "plugin1": {
+            "name": "plugin1",
+            "url": "https://example.com/plugin1.py",
+            "version": "1.0",
+            "description": "A brief description of plugin1",
+            "author": "John Doe"
+        },
+        "plugin2": {
+            "name": "plugin2",
+            "url": "https://example.com/plugin2.py",
+            "version": "1.1",
+            "description": "A brief description of plugin2",
+            "author": "Jane Doe"
+        }
+    },
+    "repo-info": {
+        "name": "My Other Repository",
+        "description": "Another repository of plugins for my application",
+        "update_url": "https://example.com/repo-update.json"
+    }
+}
