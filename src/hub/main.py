@@ -43,7 +43,7 @@ def run_plugin(plugin_name, cmd, args):
     if DEBUG:
         move_plugins_to_config()
     # Load and run the plugin
-    try:
+    #try:
         spec = importlib.util.spec_from_file_location(plugin_name, plugin_path)
         if spec is None or spec.loader is None:
             print(f"Could not load plugin '{plugin_name}'.")
@@ -54,12 +54,12 @@ def run_plugin(plugin_name, cmd, args):
         # Call the plugin's main function if it exists
         if hasattr(module, cmd):
             cmd = getattr(module, cmd)
-            cmd(get_data_dir(), get_data_local_dir(), args)
+            cmd(get_data_dir(), get_data_local_dir(), config_dir, args)
         else:
             print(f"Plugin '{plugin_name}' does not have the command {cmd}.")
             
-    except Exception as e:
-        print(f"Error executing plugin '{plugin_name}': {e}")
+    #except Exception as e:
+        #print(f"Error executing plugin '{plugin_name}': {e}")
 
 
 def move_plugins_to_config():

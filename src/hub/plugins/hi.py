@@ -8,6 +8,6 @@ def meta_data():
         "file_path": __file__,
     }
 
-def main(data_dir: str, args: list[str]) -> None:
+def main(data_dir, local_data_dir, config_dir, args):
     name = args[0] if args else "there"
-    print(f"Hi, {name}! Notes live in {data_dir}.")
+    print(f"Hi, {name}! Data lives in {data_dir}.")

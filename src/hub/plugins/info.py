@@ -4,8 +4,7 @@ import os
 import sys
 
 
-def main(data_dir, args):
-    config_dir = _get_config_dir()
+def main(data_dir, local_data_dir, config_dir, args):
     if not os.path.exists(config_dir):
         print("No plugin configuration directory found.")
         return

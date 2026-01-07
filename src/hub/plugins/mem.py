@@ -10,7 +10,7 @@ def meta_data():
     }
 
 
-def help(data_dir, local_data_dir):
+def help(data_dir, local_data_dir, config_dir):
     print("Usage: notes <command> [args]")
     print("Commands:")
     print("  list            - List all notes")
@@ -20,7 +20,7 @@ def help(data_dir, local_data_dir):
     print("  edit <name> <body> - Edit (overwrite) a note")
 
 
-def recall(data_dir, local_data_dir, args):
+def recall(data_dir, local_data_dir, config_dir, args):
     if not args:
         print("Please provide the name of the note to recall.")
         return
@@ -33,7 +33,7 @@ def recall(data_dir, local_data_dir, args):
         print(f"Note '{args[0]}' does not exist.")
 
 
-def delete(data_dir, local_data_dir, args):
+def delete(data_dir, local_data_dir, config_dir, args):
     if not args:
         print("Please provide the name of the note to delete.")
         return
@@ -45,7 +45,7 @@ def delete(data_dir, local_data_dir, args):
         print(f"Note '{args[0]}' does not exist.")
 
 
-def new(data_dir, local_data_dir, args):
+def new(data_dir, local_data_dir, config_dir, args):
     if len(args) < 2:
         print("Please provide the name and content of the note.")
         return
@@ -54,7 +54,7 @@ def new(data_dir, local_data_dir, args):
     print(f"Note '{args[0]}' created.")
 
 
-def list(data_dir, local_dta_dir, args):
+def list(data_dir, local_data_dir, config_dir, args):
     if not os.path.exists(data_dir):
         print("No data directory found.")
         return
@@ -63,10 +63,10 @@ def list(data_dir, local_dta_dir, args):
         print(note)
 
 
-def edit(data_dir, local_data_dir, args):
+def edit(data_dir, local_data_dir, config_dir, args):
     if not args:
         print("Please provide the name of the note to edit.")
         return
     # Delete the old note and create a new one
-    delete(data_dir, [args[0]])
-    new(data_dir, args)
+    delete(data_dir, local_data_dir, config_dir, [args[0]])
+    new(data_dir, local_data_dir, config_dir, args)
