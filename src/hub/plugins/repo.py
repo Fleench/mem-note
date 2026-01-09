@@ -13,8 +13,9 @@ def meta_data():
     }
 def catalog(data_dir, local_data_dir, config_dir, args):
     '''
-    List all configured plugin repositories.
+    List all configured plugin repositories. Returns list of lines.
     '''
+    out = []
     config_dir_self = _get_config_dir_self(config_dir)
     for filename in os.listdir(config_dir_self):
         if not filename.endswith(".json"):
@@ -22,44 +23,45 @@ def catalog(data_dir, local_data_dir, config_dir, args):
         repo_path = os.path.join(config_dir_self, filename)
         with open(repo_path, "r") as f:
             repo = json.load(f)
-            print(f"{repo['repo-info']['name']}: {repo['repo-info']['description']}")
+            out.append(f"{repo['repo-info']['name']}: {repo['repo-info']['description']}")
+    return out
 def add(data_dir, local_data_dir, config_dir, args):
     '''
-    Add a new plugin repository.
+    Add a new plugin repository. Returns a status message.
     '''
     config_dir_self = _get_config_dir_self(config_dir)
     source = args[0]
     if args[0].startswith("http://") or args[0].startswith("https://"):
         response = requests.get(source)
         if response.status_code != 200:
-            print(f"Failed to download plugin from {source}.")
-            return
+            return f"Failed to download plugin from {source}."
         plugin_name = source.split("/")[-1]
         destination_path = os.path.join(config_dir_self, response.url.split("/")[-1])
         with open(destination_path, "wb") as f:
             f.write(response.content)
-        print(f"Installed repo from {source} to {destination_path}")
+        return f"Installed repo from {source} to {destination_path}"
     else:
         destination_path = os.path.join(config_dir_self, source.split("/")[-1])
         shutil.copy2(source, destination_path)
-        print(f"Added repo from {source} to {destination_path}")
+        return f"Added repo from {source} to {destination_path}"
     pass
 def remove(data_dir, local_data_dir, config_dir, args):
     '''
-    Remove an existing plugin repository.
+    Remove an existing plugin repository. Returns a status message.
     '''
     config_dir_self = _get_config_dir_self(config_dir)
     repo_name = args[0]
     repo_path = os.path.join(config_dir_self, repo_name + ".json")
     if os.path.exists(repo_path):
         os.remove(repo_path)
-        print(f"Removed repo '{repo_name}'.")
+        return f"Removed repo '{repo_name}'."
     else:
-        print(f"Repo '{repo_name}' not found.")
+        return f"Repo '{repo_name}' not found."
 def update(data_dir, local_data_dir, config_dir, args):
     '''
-    Update plugin repositories.
+    Update plugin repositories. Returns list of status messages.
     '''
+    out = []
     config_dir_self = _get_config_dir_self(config_dir)
     for filename in os.listdir(config_dir_self):
         if not filename.endswith(".json"):
@@ -70,15 +72,17 @@ def update(data_dir, local_data_dir, config_dir, args):
             repo_url = repo["repo-info"]["url"]
             response = requests.get(repo_url)
             if response.status_code != 200:
-                print(f"Failed to update repo from {repo_url}.")
+                out.append(f"Failed to update repo from {repo_url}.")
                 continue
             with open(repo_path, "wb") as repo_file:
                 repo_file.write(response.content)
-            print(f"Updated repo '{repo['repo-info']['name']}' from {repo_url}.")
+            out.append(f"Updated repo '{repo['repo-info']['name']}' from {repo_url}.")
+    return out
 def search(data_dir, local_data_dir, config_dir, args):
     '''
-    Search for plugins in configured repositories.
+    Search for plugins in configured repositories. Returns list of matches.
     '''
+    out = []
     config_dir_self = _get_config_dir_self(config_dir)
     for filename in os.listdir(config_dir_self):
         if not filename.endswith(".json"):
@@ -88,7 +92,8 @@ def search(data_dir, local_data_dir, config_dir, args):
             repo = json.load(f)
             for plugin in repo.get("plugins", []):
                 if any(arg.lower() in plugin["name"].lower() or arg.lower() in plugin.get("description", "").lower() for arg in args):
-                    print(f"{plugin['name']}: {plugin.get('description', 'No description.')}")
+                    out.append(f"{plugin['name']}: {plugin.get('description', 'No description.')}")
+    return out
 def build(data_dir, local_data_dir, config_dir, args):
     '''
     Build the plugin index from configured repositories.
@@ -120,7 +125,7 @@ def build(data_dir, local_data_dir, config_dir, args):
     index_path = os.path.join(config_dir_pkg, "index.json")
     with open(index_path, "w") as f:
         json.dump(index, f, indent=4)
-    print(f"Built plugin index with {len(index)} plugins at {index_path}.")
+    return f"Built plugin index with {len(index)} plugins at {index_path}."
 def _get_config_dir_pkg(config_dir):
     pkg_config_dir = os.path.join(config_dir, "pkg")
     if not os.path.exists(pkg_config_dir):

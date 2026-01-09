@@ -56,7 +56,15 @@ def run_plugin(plugin_name, cmd, args):
         # Call the plugin's main function if it exists
         if hasattr(module, cmd):
             cmd = getattr(module, cmd)
-            cmd(get_data_dir(), get_data_local_dir(), config_dir, args)
+            result = cmd(get_data_dir(), get_data_local_dir(), config_dir, args)
+            # Plugins should return text (str) or list of lines; printing happens here in main
+            if result is None:
+                return
+            if isinstance(result, list):
+                for line in result:
+                    print(line)
+            else:
+                print(result)
         else:
             print(f"Plugin '{plugin_name}' does not have the command {cmd}.")
             

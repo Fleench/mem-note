@@ -10,4 +10,4 @@ def meta_data():
 
 def main(data_dir, local_data_dir, config_dir, args):
     name = args[0] if args else "there"
-    print(f"Hi, {name}! Data lives in {data_dir}.")
+    return f"Hi, {name}! Data lives in {data_dir}."

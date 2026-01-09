@@ -11,62 +11,64 @@ def meta_data():
 
 
 def help(data_dir, local_data_dir, config_dir):
-    print("Usage: notes <command> [args]")
-    print("Commands:")
-    print("  list            - List all notes")
-    print("  new <name> <body> - Create a new note")
-    print("  recall <name>   - Read a note")
-    print("  delete <name>   - Delete a note")
-    print("  edit <name> <body> - Edit (overwrite) a note")
+    return [
+        "Usage: notes <command> [args]",
+        "Commands:",
+        "  list            - List all notes",
+        "  new <name> <body> - Create a new note",
+        "  recall <name>   - Read a note",
+        "  delete <name>   - Delete a note",
+        "  edit <name> <body> - Edit (overwrite) a note",
+    ]
 
 
 def recall(data_dir, local_data_dir, config_dir, args):
     if not args:
-        print("Please provide the name of the note to recall.")
-        return
+        return "Please provide the name of the note to recall."
     note_path = os.path.join(data_dir, args[0])
     if os.path.exists(note_path):
         with open(note_path, "r") as file:
             content = file.read()
-            print(content)
+            return content
     else:
-        print(f"Note '{args[0]}' does not exist.")
+        return f"Note '{args[0]}' does not exist."
 
 
 def delete(data_dir, local_data_dir, config_dir, args):
     if not args:
-        print("Please provide the name of the note to delete.")
-        return
+        return "Please provide the name of the note to delete."
     note_path = os.path.join(data_dir, args[0])
     if os.path.exists(note_path):
         os.remove(note_path)
-        print(f"Note '{args[0]}' deleted.")
+        return f"Note '{args[0]}' deleted."
     else:
-        print(f"Note '{args[0]}' does not exist.")
+        return f"Note '{args[0]}' does not exist."
 
 
 def new(data_dir, local_data_dir, config_dir, args):
     if len(args) < 2:
-        print("Please provide the name and content of the note.")
-        return
+        return "Please provide the name and content of the note."
     with open(os.path.join(data_dir, args[0]), "w") as file:
         file.write(" ".join(args[1:]))
-    print(f"Note '{args[0]}' created.")
+    return f"Note '{args[0]}' created."
 
 
 def list(data_dir, local_data_dir, config_dir, args):
     if not os.path.exists(data_dir):
-        print("No data directory found.")
-        return
+        return "No data directory found."
     notes = os.listdir(data_dir)
-    for note in notes:
-        print(note)
+    return notes
 
 
 def edit(data_dir, local_data_dir, config_dir, args):
     if not args:
-        print("Please provide the name of the note to edit.")
-        return
+        return "Please provide the name of the note to edit."
     # Delete the old note and create a new one
-    delete(data_dir, local_data_dir, config_dir, [args[0]])
-    new(data_dir, local_data_dir, config_dir, args)
+    out = []
+    d = delete(data_dir, local_data_dir, config_dir, [args[0]])
+    if d:
+        out.append(d)
+    n = new(data_dir, local_data_dir, config_dir, args)
+    if n:
+        out.append(n)
+    return out
