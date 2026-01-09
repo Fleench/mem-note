@@ -4,7 +4,7 @@ import os
 import sys
 import importlib.util
 import shutil
-DEBUG = True
+DEBUG = False
 def main():
     args = sys.argv[1:]
     if not args:
@@ -32,7 +32,7 @@ def run_plugin(plugin_name, cmd, args):
     Load and run a specific plugin
     '''
     config_dir = get_config_dir()
-    plugin_path = os.path.join(config_dir, plugin_name + ".py")
+    plugin_path = os.path.join(config_dir, "plugins", plugin_name + ".py")
     # Check if plugin exists in config; if not, try to install it from package
     if not os.path.exists(plugin_path) or DEBUG:
         move_plugins_to_config()
@@ -74,7 +74,7 @@ def move_plugins_to_config():
         if not filename.endswith(".py") or filename.startswith("__"):
             continue
         source_path = os.path.join(plugins_dir, filename)
-        destination_path = os.path.join(config_dir, filename)
+        destination_path = os.path.join(config_dir,"plugins",filename)
         if not os.path.exists(destination_path) or DEBUG:
             shutil.copy2(source_path, destination_path)
 

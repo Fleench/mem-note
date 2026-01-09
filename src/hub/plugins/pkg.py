@@ -28,7 +28,7 @@ def add(data_dir, local_data_dir, config_dir, args):
     if not source_path.endswith(".py"):
         print("Only .py plugin files can be added.")
         return
-    destination_path = os.path.join(config_dir, os.path.basename(source_path))
+    destination_path = os.path.join(config_dir,"plugins", os.path.basename(source_path))
     shutil.move(source_path, destination_path)
     print(f"Added plugin to {destination_path}")
 
@@ -99,7 +99,7 @@ def install(data_dir, local_data_dir, config_dir, args):
             print(f"Failed to download plugin from {source}.")
             return
         plugin_name = source.split("/")[-1]
-        destination_path = os.path.join(config_dir + "/plugins/", plugin_name)
+        destination_path = os.path.join(config_dir + "plugins", plugin_name)
         with open(destination_path, "wb") as f:
             f.write(response.content)
         print(f"Installed plugin from {source} to {destination_path}")
@@ -127,7 +127,7 @@ def install(data_dir, local_data_dir, config_dir, args):
         if response.status_code != 200:
             print(f"Failed to download plugin from {plugin_url}.")
             return
-        destination_path = os.path.join(config_dir + "/plugins/", f"{source}.py")
+        destination_path = os.path.join(config_dir + "plugins", f"{source}.py")
         if not os.path.exists(os.path.dirname(destination_path)):
             os.makedirs(os.path.dirname(destination_path), exist_ok=True)
         with open(destination_path, "wb") as f:
