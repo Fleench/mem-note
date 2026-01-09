@@ -4,6 +4,7 @@ import os
 import sys
 import importlib.util
 import shutil
+import random
 DEBUG = False
 def main():
     args = sys.argv[1:]
@@ -18,6 +19,8 @@ def main():
         init()
     elif command == "load":
         load(args[1:])
+    elif command == "reset":
+        reset(args[1:])
     else:
         # Treat command as a plugin name
         split_command = command.split(".")
@@ -36,14 +39,13 @@ def run_plugin(plugin_name, cmd, args):
     # Check if plugin exists in config; if not, try to install it from package
     if not os.path.exists(plugin_path) or DEBUG:
         move_plugins_to_config()
-        plugin_path = os.path.join(config_dir, plugin_name + ".py")
         if not os.path.exists(plugin_path):
             print(f"Plugin '{plugin_name}' not found.")
             return
     if DEBUG:
         move_plugins_to_config()
     # Load and run the plugin
-    #try:
+    try:
         spec = importlib.util.spec_from_file_location(plugin_name, plugin_path)
         if spec is None or spec.loader is None:
             print(f"Could not load plugin '{plugin_name}'.")
@@ -58,8 +60,8 @@ def run_plugin(plugin_name, cmd, args):
         else:
             print(f"Plugin '{plugin_name}' does not have the command {cmd}.")
             
-    #except Exception as e:
-        #print(f"Error executing plugin '{plugin_name}': {e}")
+    except Exception as e:
+        print(f"Error executing plugin '{plugin_name}': {e}")
 
 
 def move_plugins_to_config():
@@ -75,6 +77,7 @@ def move_plugins_to_config():
             continue
         source_path = os.path.join(plugins_dir, filename)
         destination_path = os.path.join(config_dir,"plugins",filename)
+        os.makedirs(os.path.join(config_dir,"plugins"), exist_ok=True)
         if not os.path.exists(destination_path) or DEBUG:
             shutil.copy2(source_path, destination_path)
 
@@ -165,7 +168,37 @@ def load(args):
         print("Reverted to default data directory.")
     else:
         print(f"Path '{data_dir}' does not exist or is not a directory.")
-
+def reset(args):
+    '''
+    Reset the configuration  by deleting the config directory
+    '''
+    if not args or args[0] not in ["config", "data", "bundled-plugins"]:
+        print("Usage: hub reset <config|data|bundled-plugins>")
+        return
+    conf = random.randint(1000000,9999999)
+    print(f"You are about to reset {args[0]}. This action cannot be undone. Type in {conf} to confirm.")
+    if input("Confirmation: ") != f"{conf}":
+        print("Reset cancelled.")
+        return
+    if args[0] == "config":
+        config_dir = get_config_dir()
+        if os.path.exists(config_dir):
+            shutil.rmtree(config_dir)
+            print("Configuration reset.")
+        else:
+            print("No configuration found to reset.")
+    elif args[0] == "data":
+        data_dir = get_data_dir()
+        if os.path.exists(data_dir):
+            shutil.rmtree(data_dir)
+            print("Data directory reset.")
+        else:
+            print("No data directory found to reset.")
+    elif args[0] == "bundled-plugins":
+        config_dir = get_config_dir()
+        plugins_dir = os.path.join(config_dir, "plugins")
+        move_plugins_to_config()
+        print("Bundled plugins reset.")
 
 if __name__ == "__main__":
     main()
