@@ -29,7 +29,7 @@ def add(data_dir, local_data_dir, config_dir, args):
         print("Only .py plugin files can be added.")
         return
     destination_path = os.path.join(config_dir,"plugins", os.path.basename(source_path))
-    shutil.move(source_path, destination_path)
+    shutil.copy2(source_path, destination_path)
     print(f"Added plugin to {destination_path}")
 
 
