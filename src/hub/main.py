@@ -294,6 +294,8 @@ def plugin_API_register(): #pylint: disable=invalid-name
     API = get_API_dict()
     config_dir = get_config_dir()
     plugin_path = os.path.join(config_dir, "plugins")
+    if not os.path.exists(plugin_path):
+        move_plugins_to_config()
     for filename in os.listdir(plugin_path):
         if not filename.endswith(".py") or filename.startswith("__"):
             continue
