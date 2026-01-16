@@ -13,11 +13,11 @@ DEBUG = True
 VMAJOR = 0
 VMINOR = 4
 VPATCH = 0
+API = {}
 def main(args = []):
     term = EmbedTerminal()
     term.init_terminal()
     cmd = ""
-    plugin_API_register()
     if not args:
         args = sys.argv[1:]
     if not args:
@@ -52,7 +52,7 @@ def main(args = []):
         sys.exit(0)
     else:
         # Treat command as a plugin name
-        split_command = command.split(".")
+        split_command = command.split(":")
         if len(split_command) < 2:
             run_plugin(command, "main", args[1:])
         else:
@@ -76,6 +76,8 @@ def run_plugin(plugin_name, cmd, args):
             return
     if DEBUG:
         move_plugins_to_config()
+
+    plugin_API_register()
     # Load and run the plugin
     manifest = os.path.join(config_dir,"manifest.json")
     if not os.path.exists(manifest):
@@ -264,14 +266,16 @@ def get_API_dict() -> dict:
     '''
     Return a dictionary of the hub API commands and variables
     '''
-    API =  {
-        "VMAJOR": VMAJOR,
-        "VMINOR": VMINOR,
-        "VPATCH": VPATCH,
-        "get_data_dir": get_data_dir,
-        "get_data_local_dir": get_data_local_dir,
-        "get_config_dir": get_config_dir,
-    }
+    global API, VMAJOR, VMINOR, VPATCH
+    if not API:
+        API =  {
+            "VMAJOR": VMAJOR,
+            "VMINOR": VMINOR,
+            "VPATCH": VPATCH,
+            "get_data_dir": get_data_dir,
+            "get_data_local_dir": get_data_local_dir,
+            "get_config_dir": get_config_dir,
+        }
     return API
 def plugin_API_register():
     API = get_API_dict()
@@ -285,10 +289,15 @@ def plugin_API_register():
         if spec is None or spec.loader is None:
             continue
         module = importlib.util.module_from_spec(spec)
+        if module is None:
+            continue
         spec.loader.exec_module(module)
+        if not hasattr(module, "ID"):
+            continue
         if hasattr(module, "hub_add_api"):
             plugin_api = module.hub_add_api()
             for key in plugin_api:
-                API[key] = plugin_api[key]
+                API[module.ID] = {}
+                API[module.ID][key] = plugin_api[key]
 if __name__ == "__main__":
     main()
