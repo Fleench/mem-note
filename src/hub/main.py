@@ -296,8 +296,8 @@ def plugin_API_register():
             continue
         if hasattr(module, "hub_add_api"):
             plugin_api = module.hub_add_api()
+            API[module.ID] = {}
             for key in plugin_api:
-                API[module.ID] = {}
                 API[module.ID][key] = plugin_api[key]
 if __name__ == "__main__":
     main()
