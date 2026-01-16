@@ -18,11 +18,11 @@ def meta_data():
     }
 
 
-def help(data_dir, local_data_dir, config_dir, args):
+def help(api, args):
     return "Usage: pkg add <path> | pkg remove <name> | pkg export <name> | pkg info [names...]"
 
 
-def add(data_dir, local_data_dir, config_dir, args):
+def add(api, args):
     if not args:
         return "Please provide the path to the plugin file."
     source_path = args[0]
@@ -30,14 +30,16 @@ def add(data_dir, local_data_dir, config_dir, args):
         return f"Plugin file '{source_path}' not found."
     if not source_path.endswith(".py"):
         return "Only .py plugin files can be added."
+    config_dir = api["get_config_dir"]()
     destination_path = os.path.join(config_dir,"plugins", os.path.basename(source_path))
     shutil.copy2(source_path, destination_path)
     return f"Added plugin to {destination_path}"
 
 
-def remove(data_dir, local_data_dir, config_dir, args):
+def remove(api, args):
     if not args:
         return "Please provide the plugin name to remove."
+    config_dir = api["get_config_dir"]()
     plugin_path = _resolve_plugin_path(config_dir, args[0])
     if not plugin_path:
         return f"Plugin '{args[0]}' not found."
@@ -45,9 +47,10 @@ def remove(data_dir, local_data_dir, config_dir, args):
     return f"Removed plugin {os.path.basename(plugin_path)}"
 
 
-def export(data_dir, local_data_dir, config_dir, args):
+def export(api, args):
     if not args:
         return "Please provide the plugin name to export."
+    config_dir = api["get_config_dir"]()
     plugin_path = _resolve_plugin_path(config_dir, args[0])
     if not plugin_path:
         return f"Plugin '{args[0]}' not found."
@@ -56,13 +59,14 @@ def export(data_dir, local_data_dir, config_dir, args):
     return f"Exported plugin to {destination_path}"
 
 
-def info(data_dir, local_data_dir, config_dir, args):
+def info(api, args):
+    config_dir = api["get_config_dir"]()
     info_path = _resolve_plugin_path(config_dir, "info")
     if not info_path:
         return "Info plugin not found."
     module = _load_module("info", info_path)
     if module and hasattr(module, "main"):
-        return module.main(data_dir, local_data_dir, config_dir, args)
+        return module.main(api, args)
     else:
         return "Info plugin is missing its main entry point."
 
@@ -81,13 +85,14 @@ def _load_module(name, plugin_path):
     module = importlib.util.module_from_spec(spec)  # type: ignore
     spec.loader.exec_module(module)  # type: ignore
     return module
-def install(data_dir, local_data_dir, config_dir, args):
+def install(api, args):
     '''
     Install a plugin from a given url or the index.json file. Returns a status message.
     '''
     if not args:
         return "Please provide the plugin name or URL to install."
     source = args[0]
+    config_dir = api["get_config_dir"]()
     plugins_dir = os.path.join(config_dir, "plugins")
     # Install from direct URL
     if source.startswith("http://") or source.startswith("https://"):

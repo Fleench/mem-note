@@ -13,6 +13,7 @@ def meta_data():
         "file_path": __file__,
     }
 
-def main(data_dir, local_data_dir, config_dir, args):
+def main(api, args):
     name = args[0] if args else "there"
+    data_dir = api["get_data_local_dir"]()
     return f"Hi, {name}! Data lives in {data_dir}."

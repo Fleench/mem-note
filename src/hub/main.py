@@ -16,12 +16,12 @@ VPATCH = 0
 def main(args = []):
     term = EmbedTerminal()
     term.init_terminal()
+    cmd = ""
     if not args:
         args = sys.argv[1:]
     if not args:
         # Embeded terminal
         print("Welcome to hub. Type 'exit' to quit.")
-        cmd = ""
         while not cmd:
             try:
                 term.display_input(type="sl")
@@ -53,7 +53,7 @@ def main(args = []):
         # Treat command as a plugin name
         split_command = command.split(".")
         if len(split_command) < 2:
-            print("\nError: Command must be formated like <plugin>.<command>")
+            run_plugin(command, "main", args[1:])
         else:
             run_plugin(split_command[0], split_command[1],args[1:])
     if cmd:
@@ -105,7 +105,7 @@ def run_plugin(plugin_name, cmd, args):
             return
         if hasattr(module, cmd):
             cmd = getattr(module, cmd)
-            result = cmd(get_data_dir(), get_data_local_dir(), config_dir, args)
+            result = cmd(get_API_dict(), args)
             # Plugins should return text (str) or list of lines; printing happens here in main
             if result is None:
                 return
@@ -115,7 +115,10 @@ def run_plugin(plugin_name, cmd, args):
             else:
                 print(result)
         else:
-            print(f"Plugin '{plugin_name}' does not have the command {cmd}.")
+            if cmd == "main":
+                print(f"Plugin '{plugin_name}' does not have a main entry point.")
+            else:
+                print(f"Plugin '{plugin_name}' does not have the command {cmd}.")
             
     except Exception as e:
         print(f"Error executing plugin '{plugin_name}': {e}")
@@ -256,6 +259,19 @@ def reset(args):
         plugins_dir = os.path.join(config_dir, "plugins")
         move_plugins_to_config()
         print("Bundled plugins reset.")
+def get_API_dict() -> dict:
+    '''
+    Return a dictionary of the hub API commands and variables
+    '''
+    API =  {
+        "VMAJOR": VMAJOR,
+        "VMINOR": VMINOR,
+        "VPATCH": VPATCH,
+        "get_data_dir": get_data_dir,
+        "get_data_local_dir": get_data_local_dir,
+        "get_config_dir": get_config_dir,
+    }
+    return API
 
 if __name__ == "__main__":
     main()

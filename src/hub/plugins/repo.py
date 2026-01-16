@@ -17,11 +17,12 @@ def meta_data():
         "description": "Manage plugin repositories: add, remove, list.",
         "file_path": __file__,
     }
-def catalog(data_dir, local_data_dir, config_dir, args):
+def catalog(api, args):
     '''
     List all configured plugin repositories. Returns list of lines.
     '''
     out = []
+    config_dir = api["get_config_dir"]()
     config_dir_self = _get_config_dir_self(config_dir)
     for filename in os.listdir(config_dir_self):
         if not filename.endswith(".json"):
@@ -31,10 +32,11 @@ def catalog(data_dir, local_data_dir, config_dir, args):
             repo = json.load(f)
             out.append(f"{repo['repo-info']['name']}: {repo['repo-info']['description']}")
     return out
-def add(data_dir, local_data_dir, config_dir, args):
+def add(api, args):
     '''
     Add a new plugin repository. Returns a status message.
     '''
+    config_dir = api["get_config_dir"]()
     config_dir_self = _get_config_dir_self(config_dir)
     source = args[0]
     if args[0].startswith("http://") or args[0].startswith("https://"):
@@ -51,10 +53,11 @@ def add(data_dir, local_data_dir, config_dir, args):
         shutil.copy2(source, destination_path)
         return f"Added repo from {source} to {destination_path}"
     pass
-def remove(data_dir, local_data_dir, config_dir, args):
+def remove(api, args):
     '''
     Remove an existing plugin repository. Returns a status message.
     '''
+    config_dir = api["get_config_dir"]()
     config_dir_self = _get_config_dir_self(config_dir)
     repo_name = args[0]
     repo_path = os.path.join(config_dir_self, repo_name + ".json")
@@ -63,11 +66,12 @@ def remove(data_dir, local_data_dir, config_dir, args):
         return f"Removed repo '{repo_name}'."
     else:
         return f"Repo '{repo_name}' not found."
-def update(data_dir, local_data_dir, config_dir, args):
+def update(api, args):
     '''
     Update plugin repositories. Returns list of status messages.
     '''
     out = []
+    config_dir = api["get_config_dir"]()
     config_dir_self = _get_config_dir_self(config_dir)
     for filename in os.listdir(config_dir_self):
         if not filename.endswith(".json"):
@@ -84,11 +88,12 @@ def update(data_dir, local_data_dir, config_dir, args):
                 repo_file.write(response.content)
             out.append(f"Updated repo '{repo['repo-info']['name']}' from {repo_url}.")
     return out
-def search(data_dir, local_data_dir, config_dir, args):
+def search(api, args):
     '''
     Search for plugins in configured repositories. Returns list of matches.
     '''
     out = []
+    config_dir = api["get_config_dir"]()
     config_dir_self = _get_config_dir_self(config_dir)
     for filename in os.listdir(config_dir_self):
         if not filename.endswith(".json"):
@@ -100,11 +105,12 @@ def search(data_dir, local_data_dir, config_dir, args):
                 if any(arg.lower() in plugin["name"].lower() or arg.lower() in plugin.get("description", "").lower() for arg in args):
                     out.append(f"{plugin['name']}: {plugin.get('description', 'No description.')}")
     return out
-def build(data_dir, local_data_dir, config_dir, args):
+def build(api, args):
     '''
     Build the plugin index from configured repositories.
     Produces a mapping of plugin name -> metadata similar to the default index used by pkg.install.
     '''
+    config_dir = api["get_config_dir"]()
     config_dir_pkg = _get_config_dir_pkg(config_dir)
     config_dir_self = _get_config_dir_self(config_dir)
     index = {}
