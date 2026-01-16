@@ -9,7 +9,7 @@ import shutil
 import random
 import json
 from embed_term.term import EmbedTerminal # pylint: disable=import-error
-DEBUG = True
+DEBUG = False
 VMAJOR = 0
 VMINOR = 4
 VPATCH = 0
@@ -28,9 +28,9 @@ def main(args = []): #pylint: disable=dangerous-default-value
     cmd = ""
     if not args:
         args = sys.argv[1:]
+    if not args:
         # Embeded terminal
         print("Welcome to hub. Type 'exit' to quit.")
-        cmd = " ".join(args)
         while not cmd:
             try:
                 term.display_input(type="sl")

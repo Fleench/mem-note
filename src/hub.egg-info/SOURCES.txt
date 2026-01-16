@@ -7,6 +7,7 @@ src/hub.egg-info/PKG-INFO
 src/hub.egg-info/SOURCES.txt
 src/hub.egg-info/dependency_links.txt
 src/hub.egg-info/entry_points.txt
+src/hub.egg-info/requires.txt
 src/hub.egg-info/top_level.txt
 src/hub/plugins/__init__.py
 src/hub/plugins/hi.py
