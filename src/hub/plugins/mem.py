@@ -1,6 +1,8 @@
 """Notes management plugin."""
 import os
-
+VMAJOR = 0
+VMINOR = 4
+VPATCH = 0
 
 def meta_data():
     return {

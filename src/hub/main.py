@@ -5,12 +5,32 @@ import sys
 import importlib.util
 import shutil
 import random
-DEBUG = False
-def main():
-    args = sys.argv[1:]
+from embed_term.main import EmbedTerminal
+from embed_term import readchar
+DEBUG = True
+VMAJOR = 0
+VMINOR = 4
+VPATCH = 0
+def main(args = []):
+    term = EmbedTerminal()
+    term.init_terminal()
     if not args:
-        print("Usage: hub <plugin_name> [args] | init | load <path>")
-        return
+        args = sys.argv[1:]
+    if not args:
+        # Embeded terminal
+        print("Welcome to hub. Type 'exit' to quit.")
+        cmd = ""
+        while not cmd:
+            try:
+                term.display_input(type="sl")
+                if term.tick():
+                    cmd = term.read_input().strip()
+            except:
+                term.reset_terminal()
+                print("\nExiting hub.")
+                sys.exit(0)
+        args = cmd.split()
+
     
     command = args[0]
     
@@ -21,14 +41,22 @@ def main():
         load(args[1:])
     elif command == "reset":
         reset(args[1:])
+    elif command.lower() == "exit":
+        term.clear_input()
+        print()
+        term.reset_terminal()
+        sys.exit(0)
     else:
         # Treat command as a plugin name
         split_command = command.split(".")
         if len(split_command) < 2:
-            print("Error: Command must be formated like <plugin>.<command>")
-            return
-        run_plugin(split_command[0], split_command[1],args[1:])
-
+            print("\nError: Command must be formated like <plugin>.<command>")
+        else:
+            run_plugin(split_command[0], split_command[1],args[1:])
+    if cmd:
+        term.clear_input()
+        cmd = ""
+        main()
 
 def run_plugin(plugin_name, cmd, args):
     '''
@@ -54,6 +82,9 @@ def run_plugin(plugin_name, cmd, args):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         # Call the plugin's main function if it exists
+        global VMAJOR, VMINOR, VPATCH
+        if VMAJOR != module.VMAJOR or (VMAJOR ==0 and (VMINOR != module.VMINOR)):
+            Exception(f"Plugin: {plugin_name} version incompatible with hub version.")
         if hasattr(module, cmd):
             cmd = getattr(module, cmd)
             result = cmd(get_data_dir(), get_data_local_dir(), config_dir, args)
