@@ -80,6 +80,7 @@ def info(api, args):
 
 
 def meta_data():
+    '''Return plugin metadata for the info plugin.'''
     return {
         "name": "info",
         "description": "Display available plugins and metadata.",
