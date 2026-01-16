@@ -117,7 +117,7 @@ def register_plugin_to_manifest(plugin_name):
     except Exception as e: # pylint: disable=broad-except
         print(f"Error registering plugin '{plugin_name}': {e}")
         return None
-    return None
+    return module
 def execute_plugin_command(module, command, args):
     '''
     Execute a specific command of a plugin
