@@ -74,8 +74,8 @@ def run_plugin(plugin_name, cmd, args):
     '''
     plugin_API_register()
     if ensure_plugin_exists(plugin_name):
-        register_plugin_to_manifest(plugin_name)
-        execute_plugin_command(plugin_name, cmd, args)
+        if module := register_plugin_to_manifest(plugin_name):
+            execute_plugin_command(module, cmd, args)
 
 def ensure_plugin_exists(plugin_name):
     '''
@@ -85,6 +85,7 @@ def ensure_plugin_exists(plugin_name):
     plugin_path = os.path.join(config_dir, "plugins", plugin_name + ".py")
     if not os.path.exists(plugin_path) or DEBUG:
         move_plugins_to_config()
+    return os.path.exists(plugin_path)
 def register_plugin_to_manifest(plugin_name):
     '''
     Register a plugin in the manifest file
@@ -100,8 +101,7 @@ def register_plugin_to_manifest(plugin_name):
     try:
         spec = importlib.util.spec_from_file_location(plugin_name, plugin_path)
         if spec is None or spec.loader is None:
-            print(f"Could not load plugin '{plugin_name}'.")
-            return
+            raise Exception(f"Could not load plugin '{plugin_name}'.") #pylint: disable=broad-exception-raised
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         if plugin_name not in manifest_data:
@@ -110,23 +110,18 @@ def register_plugin_to_manifest(plugin_name):
                 manifest_data[ID] = {}
             except AttributeError:
                 print(f"Plugin '{plugin_name}' is missing an ID attribute.")
-                return
+                return None
             with open(manifest, "w",encoding="UTF-8") as file:
                 json.dump(manifest_data, file, indent=4)
+            return module
     except Exception as e: # pylint: disable=broad-except
         print(f"Error registering plugin '{plugin_name}': {e}")
-def execute_plugin_command(plugin_name, command, args):
+        return None
+    return None
+def execute_plugin_command(module, command, args):
     '''
     Execute a specific command of a plugin
     '''
-    config_dir = get_config_dir()
-    plugin_path = os.path.join(config_dir, "plugins", plugin_name + ".py")
-    spec = importlib.util.spec_from_file_location(plugin_name, plugin_path)
-    if spec is None or spec.loader is None:
-        print(f"Could not load plugin '{plugin_name}'.")
-        return
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
     if hasattr(module, command):
         cmd = getattr(module, command)
         result = cmd(get_API_dict(), args)
@@ -138,7 +133,7 @@ def execute_plugin_command(plugin_name, command, args):
         else:
             print(result)
     else:
-        print(f"Plugin '{plugin_name}' does not have the command {command}.")
+        print(f"Plugin '{module.ID}' does not have the command {command}.")
 
 def move_plugins_to_config():
     '''
