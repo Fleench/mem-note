@@ -1,5 +1,10 @@
 """Example plugin."""
 
+VMAJOR = 0
+VMINOR = 4
+VPATCH = 0
+ID = "com.flench04.hi"
+
 
 def meta_data():
     return {

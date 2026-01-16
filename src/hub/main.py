@@ -1,12 +1,14 @@
-# File: main.py
-# Description: Plugin manager and entry point for mem-note
+'''
+File: main.py
+Description: Plugin manager and entry point for mem-note
+'''
 import os
 import sys
 import importlib.util
 import shutil
 import random
-from embed_term.main import EmbedTerminal
-from embed_term import readchar
+import json
+from embed_term.term import EmbedTerminal
 DEBUG = True
 VMAJOR = 0
 VMINOR = 4
@@ -25,6 +27,7 @@ def main(args = []):
                 term.display_input(type="sl")
                 if term.tick():
                     cmd = term.read_input().strip()
+                    print()
             except:
                 term.reset_terminal()
                 print("\nExiting hub.")
@@ -73,6 +76,12 @@ def run_plugin(plugin_name, cmd, args):
     if DEBUG:
         move_plugins_to_config()
     # Load and run the plugin
+    manifest = os.path.join(config_dir,"manifest.json")
+    if not os.path.exists(manifest):
+        with open(manifest,"w") as file:
+            file.write("{}")
+    with open(manifest, "r") as file:
+        manifest_data = json.load(file)
     try:
         spec = importlib.util.spec_from_file_location(plugin_name, plugin_path)
         if spec is None or spec.loader is None:
@@ -81,10 +90,19 @@ def run_plugin(plugin_name, cmd, args):
             
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        # Call the plugin's main function if it exists
+        if plugin_name not in manifest_data:
+            try:
+                ID = module.ID
+                manifest_data[ID] = {}
+            except:
+                print(f"Plugin '{plugin_name}' is missing an ID attribute.")
+                return
+            with open(manifest, "w") as file:
+                json.dump(manifest_data, file, indent=4)
         global VMAJOR, VMINOR, VPATCH
-        if VMAJOR != module.VMAJOR or (VMAJOR ==0 and (VMINOR != module.VMINOR)):
-            Exception(f"Plugin: {plugin_name} version incompatible with hub version.")
+        if VMAJOR != module.VMAJOR or (VMAJOR == 0 and (VMINOR != module.VMINOR)):
+            print(f"Plugin: {plugin_name} version incompatible with hub version.")
+            return
         if hasattr(module, cmd):
             cmd = getattr(module, cmd)
             result = cmd(get_data_dir(), get_data_local_dir(), config_dir, args)

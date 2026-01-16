@@ -5,6 +5,11 @@ import shutil
 import requests
 import json
 
+VMAJOR = 0
+VMINOR = 4
+VPATCH = 0
+ID = "com.flench04.pkg"
+
 def meta_data():
     return {
         "name": "pkg",

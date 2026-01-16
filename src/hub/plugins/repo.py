@@ -5,6 +5,12 @@ import os
 import shutil
 import json
 import requests
+
+VMAJOR = 0
+VMINOR = 4
+VPATCH = 0
+ID = "com.flench04.repo"
+
 def meta_data():
     return {
         "name": "repo",

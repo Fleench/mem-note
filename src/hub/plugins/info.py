@@ -9,6 +9,11 @@ All public commands return either a `str` or `list[str]`. They do not print dire
 import importlib.util
 import os
 
+VMAJOR = 0
+VMINOR = 4
+VPATCH = 0
+ID = "com.flench04.info"
+
 
 def main(data_dir, local_data_dir, config_dir, args):
     """Entry point: if no args, list plugins. Supports explicit subcommands:

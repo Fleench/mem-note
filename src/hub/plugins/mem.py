@@ -3,7 +3,7 @@ import os
 VMAJOR = 0
 VMINOR = 4
 VPATCH = 0
-
+ID = "com.flench04.mem"
 def meta_data():
     return {
         "name": "notes",
