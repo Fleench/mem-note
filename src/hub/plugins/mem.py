@@ -1,7 +1,9 @@
 """Notes management plugin."""
 import os
-
-
+VMAJOR = 0
+VMINOR = 4
+VPATCH = 0
+ID = "com.flench04.mem"
 def meta_data():
     return {
         "name": "notes",
@@ -10,7 +12,7 @@ def meta_data():
     }
 
 
-def help(data_dir, local_data_dir, config_dir):
+def help(api, args):
     return [
         "Usage: notes <command> [args]",
         "Commands:",
@@ -22,9 +24,10 @@ def help(data_dir, local_data_dir, config_dir):
     ]
 
 
-def recall(data_dir, local_data_dir, config_dir, args):
+def recall(api, args):
     if not args:
         return "Please provide the name of the note to recall."
+    data_dir = api["get_data_local_dir"]()
     note_path = os.path.join(data_dir, args[0])
     if os.path.exists(note_path):
         with open(note_path, "r") as file:
@@ -34,9 +37,10 @@ def recall(data_dir, local_data_dir, config_dir, args):
         return f"Note '{args[0]}' does not exist."
 
 
-def delete(data_dir, local_data_dir, config_dir, args):
+def delete(api, args):
     if not args:
         return "Please provide the name of the note to delete."
+    data_dir = api["get_data_local_dir"]()
     note_path = os.path.join(data_dir, args[0])
     if os.path.exists(note_path):
         os.remove(note_path)
@@ -45,30 +49,38 @@ def delete(data_dir, local_data_dir, config_dir, args):
         return f"Note '{args[0]}' does not exist."
 
 
-def new(data_dir, local_data_dir, config_dir, args):
+def new(api, args):
     if len(args) < 2:
         return "Please provide the name and content of the note."
+    data_dir = api["get_data_local_dir"]()
     with open(os.path.join(data_dir, args[0]), "w") as file:
         file.write(" ".join(args[1:]))
     return f"Note '{args[0]}' created."
 
 
-def list(data_dir, local_data_dir, config_dir, args):
+def list(api, args):
+    data_dir = api["get_data_local_dir"]()
     if not os.path.exists(data_dir):
         return "No data directory found."
     notes = os.listdir(data_dir)
     return notes
 
 
-def edit(data_dir, local_data_dir, config_dir, args):
+def edit(api, args):
     if not args:
         return "Please provide the name of the note to edit."
     # Delete the old note and create a new one
     out = []
-    d = delete(data_dir, local_data_dir, config_dir, [args[0]])
+    d = delete(api, [args[0]])
     if d:
         out.append(d)
-    n = new(data_dir, local_data_dir, config_dir, args)
+    n = new(api, args)
     if n:
         out.append(n)
     return out
+def main(api, args):
+    return help(api, args)
+def hub_add_api():
+    return {
+        "recall note": recall,
+    }

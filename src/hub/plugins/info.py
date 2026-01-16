@@ -9,13 +9,19 @@ All public commands return either a `str` or `list[str]`. They do not print dire
 import importlib.util
 import os
 
+VMAJOR = 0
+VMINOR = 4
+VPATCH = 0
+ID = "com.flench04.info"
 
-def main(data_dir, local_data_dir, config_dir, args):
+
+def main(api, args):
     """Entry point: if no args, list plugins. Supports explicit subcommands:
     - catalog / list / ls
     - info / show <plugin> [<plugin>...]
     Otherwise treats args as plugin names to show info for.
     """
+    config_dir = api["get_config_dir"]()
     plugins_dir = os.path.join(config_dir, "plugins")
     if not os.path.exists(plugins_dir):
         return ["No plugin configuration directory found."]
@@ -32,14 +38,15 @@ def main(data_dir, local_data_dir, config_dir, args):
     if cmd in ("catalog", "list", "ls"):
         return _get_all_plugins_info(plugins_dir, plugins)
     if cmd in ("info", "show"):
-        return info(data_dir, local_data_dir, config_dir, args[1:])
+        return info(api, args[1:])
 
     # Otherwise treat the provided args as plugin names
-    return info(data_dir, local_data_dir, config_dir, args)
+    return info(api, args)
 
 
-def catalog(data_dir, local_data_dir, config_dir, args):
+def catalog(api, args):
     """Public command to list plugins."""
+    config_dir = api["get_config_dir"]()
     plugins_dir = os.path.join(config_dir, "plugins")
     if not os.path.exists(plugins_dir):
         return ["No plugin configuration directory found."]
@@ -49,7 +56,7 @@ def catalog(data_dir, local_data_dir, config_dir, args):
     return _get_all_plugins_info(plugins_dir, plugins)
 
 
-def info(data_dir, local_data_dir, config_dir, args):
+def info(api, args):
     """Public command to return metadata for one or more plugins.
 
     args: list of plugin names (without ".py" or with). Returns list of lines.
@@ -58,6 +65,7 @@ def info(data_dir, local_data_dir, config_dir, args):
         return ["Error: Please provide at least one plugin name."]
 
     out = []
+    config_dir = api["get_config_dir"]()
     plugins_dir = os.path.join(config_dir, "plugins")
     for name in args:
         plugin_path = _resolve_plugin_path(plugins_dir, name)
@@ -72,6 +80,7 @@ def info(data_dir, local_data_dir, config_dir, args):
 
 
 def meta_data():
+    '''Return plugin metadata for the info plugin.'''
     return {
         "name": "info",
         "description": "Display available plugins and metadata.",
