@@ -80,3 +80,7 @@ def edit(api, args):
     return out
 def main(api, args):
     return help(api, args)
+def hub_add_api():
+    return {
+        "recall note": recall,
+    }

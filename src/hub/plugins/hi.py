@@ -17,3 +17,10 @@ def main(api, args):
     name = args[0] if args else "there"
     data_dir = api["get_data_local_dir"]()
     return f"Hi, {name}! Data lives in {data_dir}."
+def testapi(api, args):
+    print("Testing API access from hi plugin...")
+    return api["com.flench04.hi"]["greet"](api, args)
+def hub_add_api():
+    return {
+        "greet": main,
+    }

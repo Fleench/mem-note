@@ -17,6 +17,7 @@ def main(args = []):
     term = EmbedTerminal()
     term.init_terminal()
     cmd = ""
+    plugin_API_register()
     if not args:
         args = sys.argv[1:]
     if not args:
@@ -272,6 +273,22 @@ def get_API_dict() -> dict:
         "get_config_dir": get_config_dir,
     }
     return API
-
+def plugin_API_register():
+    API = get_API_dict()
+    config_dir = get_config_dir()
+    plugin_path = os.path.join(config_dir, "plugins")
+    for filename in os.listdir(plugin_path):
+        if not filename.endswith(".py") or filename.startswith("__"):
+            continue
+        plugin_name = filename[:-3]
+        spec = importlib.util.spec_from_file_location(plugin_name, os.path.join(plugin_path, filename))
+        if spec is None or spec.loader is None:
+            continue
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        if hasattr(module, "hub_add_api"):
+            plugin_api = module.hub_add_api()
+            for key in plugin_api:
+                API[key] = plugin_api[key]
 if __name__ == "__main__":
     main()
