@@ -1,1 +1,1 @@
-embed-term
+embed-term>=1.0.0

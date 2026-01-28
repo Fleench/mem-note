@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: hub
-Version: 0.4.0
+Version: 0.5.0
 Summary: A plugin-based note & utility runner
 Author: Glenn Sutherland
 License: MIT License
@@ -28,7 +28,7 @@ License: MIT License
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: embed-term
+Requires-Dist: embed-term>=1.0.0
 Dynamic: license-file
 
 # MAJOR CHANGES INCOMING

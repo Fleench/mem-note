@@ -1,13 +1,13 @@
 [project]
 name = "hub"
-version = "0.4.4"
+version = "0.5.0"
 description = "A plugin-based note & utility runner"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "Glenn Sutherland" }]
 dependencies = [
-    "embed-term",
+    "embed-term>=1.0.0",
 ]
 [project.scripts]
 hub = "hub.main:main"
